@@ -70,11 +70,12 @@
                 <input type="text" id="ivEncrypt" placeholder="Enter Initialization Vector (Optional)">
            </div>
 
-            <label for="paddingEncrypt">Select Padding</label>
-            <select id="paddingEncrypt">
+            <label for="paddingEncrypt">Padding: PKCS7</label>
+            <select id="paddingEncrypt" class="d-none">
                 <option value="Pkcs7">PKCS7 Padding</option>
                 <option value="NoPadding">No Padding</option>
             </select>
+
 
             <button onclick="encrypt()">Encrypt</button>
 
@@ -102,11 +103,7 @@
             <label for="ivDecrypt">Initialization Vector</label>
             <input type="text" id="ivDecrypt" placeholder="Enter Initialization Vector">
 
-            <label for="paddingDecrypt">Select Padding</label>
-            <select id="paddingDecrypt">
-                <option value="Pkcs7">PKCS7 Padding</option>
-                <option value="NoPadding">No Padding</option>
-            </select>
+            <label for="paddingDecrypt">Padding: PKCS7</label>
 
             <button onclick="decrypt()">Decrypt</button>
 
