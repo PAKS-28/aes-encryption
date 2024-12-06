@@ -103,7 +103,11 @@
             <label for="ivDecrypt">Initialization Vector</label>
             <input type="text" id="ivDecrypt" placeholder="Enter Initialization Vector">
 
-            <label for="paddingDecrypt">Padding: PKCS7</label>
+            <label for="paddingDecrypt">Select Padding</label>
+            <select id="paddingDecrypt" class="d-none">
+                <option value="Pkcs7">PKCS7 Padding</option>
+                <option value="NoPadding">No Padding</option>
+            </select>
 
             <button onclick="decrypt()">Decrypt</button>
 
