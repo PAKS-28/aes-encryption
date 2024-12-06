@@ -47,6 +47,9 @@
         button:hover {
             background-color: #0056b3;
         }
+        .d-none {
+            display: none;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
@@ -62,8 +65,10 @@
             <label for="secretKeyEncrypt">Secret Key</label>
             <input type="text" id="secretKeyEncrypt" placeholder="Enter Secret Key (16 Characters)" maxlength="16">
 
-            <label for="ivEncrypt">Initialization Vector (Optional)</label>
-            <input type="text" id="ivEncrypt" placeholder="Enter Initialization Vector (Optional)">
+           <div class="d-none">
+                <label for="ivEncrypt">Initialization Vector (Optional)</label>
+                <input type="text" id="ivEncrypt" placeholder="Enter Initialization Vector (Optional)">
+           </div>
 
             <label for="paddingEncrypt">Select Padding</label>
             <select id="paddingEncrypt">
