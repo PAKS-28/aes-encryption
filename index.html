@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Encryption and Decryption</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .section {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 45%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>AES Encryption and Decryption</h1>
+    <div class="container">
+        <!-- Encryption Section -->
+        <div class="section">
+            <h2>AES Encryption</h2>
+            <label for="plainText">Plain Text</label>
+            <textarea id="plainText" placeholder="Enter plain text to be encrypted"></textarea>
+
+            <label for="secretKeyEncrypt">Secret Key</label>
+            <input type="text" id="secretKeyEncrypt" placeholder="Enter Secret Key (16 Characters)" maxlength="16">
+
+            <label for="ivEncrypt">Initialization Vector (Optional)</label>
+            <input type="text" id="ivEncrypt" placeholder="Enter Initialization Vector (Optional)">
+
+            <button onclick="encrypt()">Encrypt</button>
+
+            <label for="hexOutput">Hexadecimal Output</label>
+            <textarea id="hexOutput" placeholder="Hexadecimal Output" readonly></textarea>
+
+            <label for="base64Output">Base64 Output</label>
+            <textarea id="base64Output" placeholder="Base64 Output" readonly></textarea>
+
+            <label for="generatedIVOutput">Generated IV</label>
+            <textarea id="generatedIVOutput" placeholder="Generated IV (if none provided)" readonly></textarea>
+
+            <button onclick="downloadEncrypted()">Download Encrypted File</button>
+        </div>
+
+        <!-- Decryption Section -->
+        <div class="section">
+            <h2>AES Decryption</h2>
+            <label for="encryptedHexText">Encrypted Hexadecimal Text</label>
+            <textarea id="encryptedHexText" placeholder="Enter AES encrypted text in Hexadecimal"></textarea>
+
+            <label for="secretKeyDecrypt">Secret Key</label>
+            <input type="text" id="secretKeyDecrypt" placeholder="Enter Secret Key (16 Characters)">
+
+            <label for="ivDecrypt">Initialization Vector</label>
+            <input type="text" id="ivDecrypt" placeholder="Enter Initialization Vector">
+
+            <button onclick="decrypt()">Decrypt</button>
+
+            <label for="decryptedOutput">Decrypted Output (Original Message)</label>
+            <textarea id="decryptedOutput" placeholder="Decrypted result (original message)" readonly></textarea>
+
+            <input type="file" id="fileInput" accept=".json" onchange="uploadEncrypted()">
+        </div>
+    </div>
+
+    <script>
+        function encrypt() {
+            const plainText = document.getElementById("plainText").value;
+            const secretKey = document.getElementById("secretKeyEncrypt").value;
+            let iv = document.getElementById("ivEncrypt").value;
+
+            if (!plainText || !secretKey) {
+                alert("Please fill in all mandatory fields!");
+                return;
+            }
+
+            if (secretKey.length !== 16) {
+                alert("Secret Key must be exactly 16 characters long. Current Length = " + secretKey.length);
+                return;
+            }
+
+            const key = CryptoJS.enc.Utf8.parse(secretKey);
+            let generatedIV = null;
+
+            if (!iv) {
+                // Generate a random IV if none is provided
+                generatedIV = CryptoJS.lib.WordArray.random(16);
+                iv = generatedIV;
+            } else {
+                iv = CryptoJS.enc.Utf8.parse(iv);
+            }
+
+            const encrypted = CryptoJS.AES.encrypt(plainText, key, {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+
+            const hexOutput = encrypted.ciphertext.toString();
+            const base64Output = CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
+
+            document.getElementById("hexOutput").value = hexOutput;
+            document.getElementById("base64Output").value = base64Output;
+
+            // Display the generated IV if it was created
+            if (generatedIV) {
+                document.getElementById("generatedIVOutput").value = CryptoJS.enc.Base64.stringify(generatedIV);
+            } else {
+                document.getElementById("generatedIVOutput").value = "No IV generated; user-provided IV was used.";
+            }
+        }
+
+        function decrypt() {
+            const encryptedHexText = document.getElementById("encryptedHexText").value;
+            const secretKey = document.getElementById("secretKeyDecrypt").value;
+            let iv = document.getElementById("ivDecrypt").value;
+
+            if (!encryptedHexText || !secretKey || !iv) {
+                alert("Please fill in all mandatory fields (Encrypted Text, Secret Key, and IV)!");
+                return;
+            }
+
+            if (secretKey.length !== 16) {
+                alert("Secret Key must be exactly 16 characters long. Current Length = " + secretKey.length);
+                return;
+            }
+
+            const key = CryptoJS.enc.Utf8.parse(secretKey);
+
+            try {
+                // Parse the IV from Base64
+                iv = CryptoJS.enc.Base64.parse(iv);
+
+                // Parse the ciphertext from Hex
+                const ciphertext = CryptoJS.enc.Hex.parse(encryptedHexText);
+                const encryptedData = CryptoJS.lib.CipherParams.create({ ciphertext: ciphertext });
+
+                // Decrypt the encrypted text
+                const decrypted = CryptoJS.AES.decrypt(encryptedData, key, {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+
+                // Convert decrypted data to UTF-8
+                const originalMessage = CryptoJS.enc.Utf8.stringify(decrypted);
+
+                if (!originalMessage) {
+                    throw new Error("Decryption failed!");
+                }
+
+                document.getElementById("decryptedOutput").value = originalMessage;
+            } catch (error) {
+                alert("Decryption failed! Please ensure the inputs are correct.");
+            }
+        }
+
+        function downloadEncrypted() {
+            const hexOutput = document.getElementById("hexOutput").value;
+            const base64Output = document.getElementById("base64Output").value;
+            const ivOutput = document.getElementById("generatedIVOutput").value;
+
+            if (!hexOutput || !base64Output || !ivOutput) {
+                alert("Nothing to download. Please perform encryption first.");
+                return;
+            }
+
+            const data = {
+                hexOutput: hexOutput,
+                base64Output: base64Output,
+                iv: ivOutput
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "encrypted_data.json";
+            a.click();
+
+            URL.revokeObjectURL(url);
+        }
+
+        function uploadEncrypted() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("No file selected.");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    document.getElementById("encryptedHexText").value = data.hexOutput || "";
+                    document.getElementById("ivDecrypt").value = data.iv || "";
+                } catch (error) {
+                    alert("Invalid file format. Please upload a valid JSON file.");
+                }
+            };
+
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
